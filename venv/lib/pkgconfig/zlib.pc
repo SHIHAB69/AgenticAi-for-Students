@@ -1,0 +1,13 @@
+prefix=/Users/sihab/Documents/VsDev/agenticAI-main/venv
+exec_prefix=/Users/sihab/Documents/VsDev/agenticAI-main/venv
+libdir=/Users/sihab/Documents/VsDev/agenticAI-main/venv/lib
+sharedlibdir=/Users/sihab/Documents/VsDev/agenticAI-main/venv/lib
+includedir=/Users/sihab/Documents/VsDev/agenticAI-main/venv/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.13
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}
