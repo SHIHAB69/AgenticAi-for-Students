@@ -1,18 +1,26 @@
 import json
 import httpx
+from rich.console import Console 
+from rich.panel import Panel
+from rich.json import JSON 
 from bs4 import BeautifulSoup
 from phi.agent import Agent
 from phi.model.groq import Groq
 from phi.tools.googlesearch import GoogleSearch 
 from phi.tools.duckduckgo import DuckDuckGo
+from phi.storage.agent.sqlite import SqlAgentStorage
 from dotenv import load_dotenv
-import openai
-import os
 import time
+from cachetools import cached, TTLCache
+from phi.playground import Playground, serve_playground_app
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+SESSION_ID = "xxxx-xxxx-xxxx-xxxx"
+MAX_HISTORY_LENGTH = 15
+
+# Set up a cache with a time-to-live (TTL) of 10 minutes
+cache = TTLCache(maxsize=100, ttl=600)
 
 # DuckDuckGo agent
 duck_agent = Agent(
@@ -36,19 +44,22 @@ google_agent = Agent(
     model=Groq(id="llama-3.3-70b-versatile"),
 )
 
-# Club agent
+# Club agent function
+@cached(cache)
 def get_club_information() -> str:
     """Use this function to get information about clubs from Daffodil International University.
 
     Returns:
         str: JSON string of club information.
     """
-
-    # Fetch the data from the website
-    response = httpx.get('https://clubs.daffodilvarsity.edu.bd/')
-    
-    if response.status_code != 200:
-        return json.dumps({"error": "Failed to fetch data from the website."})
+    try:
+        # Fetch the data from the website
+        response = httpx.get('https://clubs.daffodilvarsity.edu.bd/')
+        response.raise_for_status()  # Raise an error for bad status codes
+    except httpx.RequestError as e:
+        return json.dumps({"error": f"An error occurred while requesting data: {e}"})
+    except httpx.HTTPStatusError as e:
+        return json.dumps({"error": f"Non-success status code received: {e.response.status_code}"})
 
     # Parse the response content
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -58,8 +69,8 @@ def get_club_information() -> str:
     club_cards = soup.find_all('div', class_='club-card')
     
     for card in club_cards:
-        club_name = card.find('h3').text.strip()  # Adjust tag and class based on actual HTML
-        club_description = card.find('p').text.strip()  # Adjust tag and class based on actual HTML
+        club_name = card.find('h3').text.strip() if card.find('h3') else "Unknown Club Name"
+        club_description = card.find('p').text.strip() if card.find('p') else "No description available"
         
         # If there are additional details, extract them here as well
         club_info = {
@@ -71,7 +82,9 @@ def get_club_information() -> str:
 
     return json.dumps(clubs_data, indent=2)
 
+# Club agent setup
 club_agent = Agent(
+    name="Club Agent",
     tools=[get_club_information],
     show_tool_calls=True,
     markdown=True,
@@ -94,8 +107,20 @@ def safe_duckduckgo_search(query: str) -> str:
 multi_ai_agent = Agent(
     team=[duck_agent, google_agent, club_agent],
     model=Groq(id="llama-3.3-70b-specdec"),
-    instructions=["You are an agentic AI of Daffodil International University.", "Always provide information based on Daffodil International University data."],
+    storage=SqlAgentStorage(table_name="agent_sessions", db_file="tmp/agent_storage.db"),
+    add_history_to_messages=True,
+    num_history_responses=5,
+    instructions=[
+        "You are an agentic AI created for Daffodil International University.",
+        "Answer all queries concisely and provide meaningful information.",
+        "Do not repeat the user's question; instead, generate a thoughtful response."
+    ],
     markdown=True, 
 )
 
-multi_ai_agent.print_response("How to join Data Science club? ", stream=True)
+# Playground setup
+app = Playground(agents=[multi_ai_agent]).get_app()
+
+# Main function to serve the app on localhost
+if __name__ == "__main__":
+    serve_playground_app("playground:app", reload=True)
