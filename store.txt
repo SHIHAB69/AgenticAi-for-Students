@@ -1,0 +1,62 @@
+import json
+import httpx
+from phi.agent import Agent
+from phi.agent import Agent
+from phi.model.groq import Groq
+from dotenv import load_dotenv
+from phi.tools.googlesearch import GoogleSearch 
+from phi.tools.duckduckgo import DuckDuckGo
+from phi.tools.yfinance import YFinanceTools
+from dotenv import load_dotenv
+import openai
+import os
+from phi.tools.email import EmailTools
+
+
+def get_club_information() -> str:
+    """Use this function to get information about clubs from Daffodil International University.
+
+    Returns:
+        str: JSON string of club information.
+    """
+
+    # Fetch the data from the website
+    response = httpx.get('https://clubs.daffodilvarsity.edu.bd/')
+    
+    if response.status_code != 200:
+        return json.dumps({"error": "Failed to fetch data from the website."})
+
+    # Parse the response content
+    clubs_data = response.text  # Assuming the data is in text format
+
+    # Here, you would parse the HTML content to extract the specific information about the clubs.
+    # For simplicity, let's assume we have some predefined data structure.
+    # You will need to use an HTML parser like BeautifulSoup to extract the actual data.
+
+    # Example (pseudo-code):
+    # from bs4 import BeautifulSoup
+    # soup = BeautifulSoup(response.content, 'html.parser')
+    # clubs = soup.find_all('div', class_='club-info')
+    # clubs_data = []
+    # for club in clubs:
+    #     club_name = club.find('h2').text
+    #     club_description = club.find('p').text
+    #     clubs_data.append({'name': club_name, 'description': club_description})
+
+    # For now, let's return a dummy JSON string
+    clubs_data = [
+        {"name": "Club A", "description": "Description of Club A"},
+        {"name": "Club B", "description": "Description of Club B"},
+        {"name": "Club C", "description": "Description of Club C"}
+    ]
+
+    return json.dumps(clubs_data)
+
+# Create an agent with the custom function
+agent = Agent(tools=[get_club_information], show_tool_calls=True, markdown=True, model = Groq(id="llama-3.3-70b-versatile"))
+
+# Example usage
+agent.print_response("Provide information about the clubs at DIU", stream=True)
+
+
+GROQ_API_KEY = "ggsk_eWjLGULlN4Pm1e2fJTC7WGdyb3FYyvDeQb5Jd0FtXqWBQjfHsxaK"

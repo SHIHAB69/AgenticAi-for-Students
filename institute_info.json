@@ -1,0 +1,67 @@
+{
+    "General Information": {
+        "Institute Name": "Global Tech University",
+        "Location": "123 Innovation Drive, Tech City, Country",
+        "Contact": "+1-234-567-890",
+        "Email": "info@globaltechuniversity.edu",
+        "Website": "https://www.globaltechuniversity.edu",
+        "Office Hours": "Monday to Friday, 9:00 AM - 5:00 PM",
+        "Campus Map Link": "https://www.globaltechuniversity.edu/campus-map"
+    },
+    "Admissions": {
+        "Undergraduate Requirements": "High school diploma or equivalent, minimum GPA of 3.0, SAT/ACT scores.",
+        "Graduate Requirements": "Bachelor's degree, minimum GPA of 3.2, GRE/GMAT scores.",
+        "Application Deadline": "Fall - July 15, Spring - November 15",
+        "Tuition Fees": {
+            "Undergraduate": "$20,000 per year",
+            "Graduate": "$25,000 per year"
+        },
+        "Scholarships Available": [
+            "Merit-Based Scholarship - up to $10,000",
+            "Need-Based Financial Aid - variable amounts"
+        ]
+    },
+    "Academic Programs": {
+        "Programs Offered": [
+            "Bachelor of Computer Science",
+            "Master of Data Science",
+            "Bachelor of Business Administration",
+            "Master of Artificial Intelligence"
+        ],
+        "Online Learning Options": "Yes, online and hybrid programs are available.",
+        "Faculty": [
+            {
+                "Name": "Dr. Alice Smith",
+                "Department": "Computer Science",
+                "Email": "alice.smith@globaltechuniversity.edu"
+            },
+            {
+                "Name": "Dr. Bob Johnson",
+                "Department": "Data Science",
+                "Email": "bob.johnson@globaltechuniversity.edu"
+            }
+        ],
+        "Academic Calendar": "https://www.globaltechuniversity.edu/calendar"
+    },
+    "Student Services": {
+        "Library Hours": "Monday to Sunday, 8:00 AM - 10:00 PM",
+        "Counseling Services": "Available Monday to Friday, 10:00 AM - 4:00 PM",
+        "Clubs": [
+            "Tech Club",
+            "AI Society",
+            "Business Leaders Club"
+        ]
+    },
+    "Exams and Grading": {
+        "Grading System": "A-F scale with GPA calculation.",
+        "Exam Schedule Link": "https://www.globaltechuniversity.edu/exams"
+    },
+    "Career Services": {
+        "Career Counseling": "Available upon appointment.",
+        "Workshops": [
+            "Resume Writing",
+            "Interview Preparation",
+            "Networking Strategies"
+        ]
+    }
+}
