@@ -1,4 +1,4 @@
-#last update 06:52 22 Jan 2024 updated model id = "llama3-70b-8192" [this model id is more effecient]
+#last update 06:52 PM,  22 Jan 2024,  updated model id = "llama3-70b-8192" [this model id is more effecient]
 import json
 import httpx
 from rich.console import Console 
