@@ -1,176 +1,105 @@
-#last update 06:52 PM,  22 Jan 2024,  updated model id = "llama3-70b-8192" [this model id is more effecient]
-import json
-import httpx
-from rich.console import Console 
-from rich.panel import Panel
-from rich.json import JSON 
-from bs4 import BeautifulSoup
-from phi.agent import Agent
-from phi.model.groq import Groq
-from phi.tools.googlesearch import GoogleSearch 
-from phi.tools.duckduckgo import DuckDuckGo
-from phi.storage.agent.sqlite import SqlAgentStorage
-from dotenv import load_dotenv
-import time
-from cachetools import cached, TTLCache
-from phi.playground import Playground, serve_playground_app
+# Import necessary libraries
+try:
+    from phi.agent import Agent
+    from phi.model.groq import Groq
+    from phi.storage.agent.sqlite import SqlAgentStorage
+    from phi.playground import Playground, serve_playground_app
+    from phi.tools.duckduckgo import DuckDuckGo
+    from phi.tools.googlesearch import GoogleSearch
+except ModuleNotFoundError as e:
+    raise ModuleNotFoundError("The 'phi' library is not installed. Please install it by running 'pip install phi' and ensure your environment supports it.") from e
 
-# Load environment variables
-load_dotenv()
-SESSION_ID = "xxxx-xxxx-xxxx-xxxx"
-MAX_HISTORY_LENGTH = 15
-
-# Set up a cache with a time-to-live (TTL) of 10 minutes
-cache = TTLCache(maxsize=100, ttl=600)
-
-# DuckDuckGo agent
-duck_agent = Agent(
-    name="Web Agent",
-    role="You are an agentic AI and will behave like that. You are made by Team DIU. All the prompts you'll receive should provide output according to Daffodil International University. Always remember this information.",
-    tools=[DuckDuckGo()],
-    instructions=["Always include sources"],
-    show_tool_calls=True,
-    markdown=True,
+# Define agents for Daffodil International University
+academic_agent = Agent(
+    name="Academic Agent",
+    role="An agent dedicated to answering academic queries for Daffodil International University students.",
     model=Groq(id="llama3-70b-8192"),
-)
-
-# Google search agent
-google_agent = Agent(
-    name="Web Agent",
-    role="You are an agentic AI and will behave like that. You are made by Team DIU. All the prompts you'll receive should provide output according to Daffodil International University. Always remember this information.",
-    tools=[GoogleSearch()],
-    instructions=["Always include sources"],
-    show_tool_calls=True,
-    markdown=True,
-    model=Groq(id="llama3-70b-8192"),
-)
-
-# Club agent function
-@cached(cache)
-def get_club_information() -> str:
-    """Use this function to get information about clubs from Daffodil International University.
-
-    Returns:
-        str: JSON string of club information.
-    """
-    try:
-        # Fetch the data from the website
-        response = httpx.get('https://clubs.daffodilvarsity.edu.bd/')
-        response.raise_for_status()  # Raise an error for bad status codes
-    except httpx.RequestError as e:
-        return json.dumps({"error": f"An error occurred while requesting data: {e}"})
-    except httpx.HTTPStatusError as e:
-        return json.dumps({"error": f"Non-success status code received: {e.response.status_code}"})
-
-    # Parse the response content
-    soup = BeautifulSoup(response.content, 'html.parser')
-    clubs_data = []
-
-    # Assuming each club info is within a div with class 'club-card'
-    club_cards = soup.find_all('div', class_='club-card')
-    
-    for card in club_cards:
-        club_name = card.find('h3').text.strip() if card.find('h3') else "Unknown Club Name"
-        club_description = card.find('p').text.strip() if card.find('p') else "No description available"
-        
-        # If there are additional details, extract them here as well
-        club_info = {
-            'name': club_name,
-            'description': club_description
-        }
-        
-        clubs_data.append(club_info)
-
-    return json.dumps(clubs_data, indent=2)
-
-# Club agent setup
-club_agent = Agent(
-    name="Club Agent",
-    tools=[get_club_information],
-    show_tool_calls=True,
-    markdown=True,
-    model=Groq(id="llama3-70b-8192")
-)
-
-# Handle DuckDuckGo rate limit
-def safe_duckduckgo_search(query: str) -> str:
-    try:
-        results = DuckDuckGo().search(query)
-        return json.dumps(results, indent=2)
-    except Exception as e:
-        if "Ratelimit" in str(e):
-            time.sleep(5)  # Wait for 5 seconds before retrying
-            return safe_duckduckgo_search(query)
-        else:
-            return json.dumps({"error": str(e)})
-
-
-
-#official website data agent
-def get_diu_latest_news() -> str:
-    """Fetches the latest news from the DIU official website.
-
-    Returns:
-        str: JSON string of the latest news.
-    """
-    try:
-        response = httpx.get('https://daffodilvarsity.edu.bd/')
-        response.raise_for_status()
-    except httpx.RequestError as e:
-        return json.dumps({"error": f"An error occurred while requesting data: {e}"})
-    except httpx.HTTPStatusError as e:
-        return json.dumps({"error": f"Non-success status code received: {e.response.status_code}"})
-
-    # Parse the response content
-    soup = BeautifulSoup(response.content, 'html.parser')
-    news_data = []
-
-    # Assuming each news item is within a div with class 'news-item'
-    news_items = soup.find_all('div', class_='news-item')
-    
-    for item in news_items:
-        title = item.find('h3').text.strip() if item.find('h3') else "No title"
-        link = item.find('a')['href'] if item.find('a') else "No link"
-        date = item.find('span', class_='news-date').text.strip() if item.find('span', class_='news-date') else "No date"
-
-        news_info = {
-            'title': title,
-            'link': link,
-            'date': date
-        }
-        
-        news_data.append(news_info)
-
-    return json.dumps(news_data, indent=2)
-
-# DIU news agent setup
-diu_news = Agent(
-    name="DIU News Agent",
-    tools=[get_diu_latest_news],
-    instructions=["Provide the latest news from the official website of Daffodil International University when youre asked.","Provide short answer for this agent"] ,
-    show_tool_calls=True,
-    markdown=True,
-    model=Groq(id="llama3-70b-8192")
-)
-
-# Multi-agent setup
-multi_ai_agent = Agent(
-    team=[duck_agent, google_agent, club_agent,diu_news],
-    model=Groq(id="llama3-70b-8192"),
-    storage=SqlAgentStorage(table_name="agent_sessions", db_file="tmp/agent_storage.db"),
-    add_history_to_messages=True,
-    num_history_responses=5,
+    tools=[DuckDuckGo(), GoogleSearch()],
+    storage=SqlAgentStorage(db_file="agent_storage.db", table_name="academic_responses"),
     instructions=[
-        "You are an agentic AI created for Daffodil International University.",
-        "Answer all queries concisely and provide meaningful information.",
-        "Do not repeat the user's question; instead, generate a thoughtful response."
+        "Provide accurate academic-related information, including course details, schedules, and exam dates.",
+        "Assist students with university policies and procedures."
     ],
-    markdown=True, 
-
+    markdown=True,
 )
-# Playground setup
-app = Playground(agents=[multi_ai_agent]).get_app()
 
-# Main function to serve the app on localhost
-if __name__ == "__main__":
-    serve_playground_app("playground:app", reload=True)
+admission_agent = Agent(
+    name="Admission Helper",
+    role="An agent dedicated to assisting with admission-related queries.",
+    model=Groq(id="llama3-70b-8192"),
+    tools=[DuckDuckGo(), GoogleSearch()],
+    storage=SqlAgentStorage(db_file="agent_storage.db", table_name="admission_responses"),
+    instructions=[
+        "Guide users through the admission process, including eligibility criteria, deadlines, and required documents.",
+        "Provide details about tuition fees, scholarships, and financial aid options."
+    ],
+    markdown=True,
+)
+
+campus_agent = Agent(
+    name="Campus Guide",
+    role="An agent providing information about campus facilities, events, and services.",
+    model=Groq(id="llama3-70b-8192"),
+    tools=[DuckDuckGo(), GoogleSearch()],
+    storage=SqlAgentStorage(db_file="agent_storage.db", table_name="campus_responses"),
+    instructions=[
+        "Answer queries related to campus facilities, including libraries, cafeterias, and labs.",
+        "Provide updates about ongoing or upcoming campus events."
+    ],
+    markdown=True,
+)
+
+# Function to route queries to the appropriate agent
+def route_query(agent_name, query, history):
+    agents = {
+        "academic": academic_agent,
+        "admission": admission_agent,
+        "campus": campus_agent,
+    }
+    
+    agent = agents.get(agent_name)
+    if not agent:
+        return f"Error: Agent '{agent_name}' not found."
+
+    try:
+        # Add the history to the query
+        full_query = "\n".join(history) + "\n" + query
+        response = agent.run(full_query)
+        if hasattr(response, 'content'):
+            return response.content
+        else:
+            return "Error: Unable to extract response content."
+    except Exception as e:
+        return f"Error: {e}"
+
+# Streamlit App
+import streamlit as st
+
+st.title("Daffodil University Multi-Agent System")
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# React to user input
+if user_input := st.chat_input("Ask anything about Daffodil International University!"):
+    # Display user message in chat message container
+    st.chat_message("user").markdown(user_input)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    # Process the user query based on selected agent
+    agent_choice = "academic"  # For now, default to "academic"
+    history = [msg["content"] for msg in st.session_state.messages if msg["role"] == "user"]
+    response = route_query(agent_choice, user_input, history)
+
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
