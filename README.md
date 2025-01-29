@@ -83,7 +83,7 @@ streamlit run chatbot.py
 ---
 
 ## **🔹 Contributors**
-💡 **Developed by:** Agentic Solution BD  
+💡 **Developed by:** Agentic Solution BD (Sihab, Sameul, Junaed, Izaz)
 📍 **Affiliation:** **Data Science Club, Daffodil International University**
 
 ---
