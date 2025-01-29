@@ -83,7 +83,7 @@ streamlit run chatbot.py
 ---
 
 ## **🔹 Contributors**
-💡 **Developed by:** Exo Stealers Team  
+💡 **Developed by:** Agentic Solution BD  
 📍 **Affiliation:** **Data Science Club, Daffodil International University**
 
 ---
