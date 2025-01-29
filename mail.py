@@ -167,27 +167,9 @@ initialize_database()
 # Streamlit App
 st.title("Email Agent with Conversation Management")
 
-menu = st.sidebar.selectbox("Menu", ["Chat with Agent", "Email Inbox", "Conversation History"])
+menu = st.sidebar.selectbox("Menu", ["Email Inbox", "Conversation History"])
 
-if menu == "Chat with Agent":
-    st.header("Chat with the Agent")
-
-    user_input = st.text_input("Enter your message")
-
-    if st.button("Send"):
-        previous_conversations = fetch_all_conversations()
-        truncated_conversations = truncate_conversation_history(previous_conversations)
-        conversation_context = get_formatted_history(truncated_conversations)
-
-        try:
-            response = agent.run(conversation_context + f"\nUser: {user_input}\nAgent:")
-            agent_response = response.messages[-1].content if hasattr(response, 'messages') else "No response generated."
-            save_to_database(user_input, agent_response)
-            st.success(f"Agent: {agent_response}")
-        except Exception as e:
-            st.error(f"Error: {e}")
-
-elif menu == "Email Inbox":
+if menu == "Email Inbox":
     st.header("Check Incoming Emails")
 
     if st.button("Check Email"):
