@@ -27,8 +27,8 @@ This system is built using **GROQ API**, **PhiData**, and **Streamlit** to creat
 
 ### **Step 1: Clone the Repository**
 ```sh
-git clone [https://github.com/your-repo/AgenticAI.git](https://github.com/SHIHAB69/agenticAI-main.git)
-cd agenticAI-main
+git clone https://github.com/SHIHAB69/agenticAI-main.git
+cd AgenticAI
 ```
 
 ### **Step 2: Create a Virtual Environment (Optional but Recommended)**
@@ -50,7 +50,7 @@ Follow the official documentation to set up your API key:
 
 #### **🔹 Install PhiData (Agent Framework)**
 ```sh
-pip install phidata
+pip install phi
 ```
 🔗 [PhiData Documentation](https://phidata.ai/docs/)
 
