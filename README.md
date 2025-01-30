@@ -16,6 +16,7 @@ This system is built using **GROQ API**, **PhiData**, and **Streamlit** to creat
 
 ## **🔹 Features**
 ✅ **Multi-Agent System** - Dedicated agents for different university-related queries.  
+✅ **Voice Assistant** - Dedicated Voice agents for different university-related queries.  
 ✅ **Automated Email Handling** - Reads unread emails and provides AI-generated replies.  
 ✅ **Class Routine Fetcher** - Retrieves updated class schedules directly from **diuroutine.com**.  
 ✅ **OCR Processing** - Reads and summarizes text from uploaded images.  
